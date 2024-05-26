@@ -10,7 +10,6 @@ class Animal implements JsonSerializable
     private string $state;
     private int $stateStart;
     private int $current;
-    private $inState;
 
     public function __construct(
         string $name,
@@ -28,8 +27,6 @@ class Animal implements JsonSerializable
         $this->happiness = $happiness;
         $this->state = $state;
         $this->stateStart = Carbon::now()->timestamp;
-        $this->current = Carbon::now()->timestamp;
-        $this->inState = 0;
     }
     public function jsonSerialize(): array
     {
@@ -107,9 +104,4 @@ class Animal implements JsonSerializable
     {
         return $this->stateStart;
     }
-    public function resetCurrent(int $current): void
-    {
-        $this->current = $current;
-    }
-
 }

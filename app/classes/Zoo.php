@@ -179,9 +179,6 @@ class Zoo implements JsonSerializable
     private function stateCron()
     {
         foreach ($this->animals as $animal) {
-            $animal->resetCurrent(Carbon::now()->timestamp);
-        }
-        foreach ($this->animals as $animal) {
             if  ($animal->getState() == 'playing') {
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
