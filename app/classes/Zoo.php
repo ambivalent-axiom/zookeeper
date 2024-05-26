@@ -21,6 +21,7 @@ class Zoo implements JsonSerializable
             $this->funds = $funds;
             $this->symfonyOutput = $symfonyOutput;
             $this->symfonyInput = $symfonyInput;
+            $this->helper = new QuestionHelper();
             $this->mainLoop();
     }
     public function jsonSerialize(): array
@@ -65,9 +66,6 @@ class Zoo implements JsonSerializable
             mkdir($path, 0777, true);
         }
         $json = json_encode($this);
-        if ($json === false) {
-            throw new Exception("JSON encoding failed: " . json_last_error_msg());
-        }
         file_put_contents($zoo, $json);
     }
     public static function loadZoo(string $json, OutputInterface $output, InputInterface $input): Zoo
@@ -90,40 +88,53 @@ class Zoo implements JsonSerializable
     private function mainLoop(): void
     {
         $options = [
-            'Add animal',
-            'Feed animal',
-            'Play with animal',
-            'Send animal to work',
-            'Send animal to play',
-            'Refresh Zoo',
-            'Save Zoo',
-            'Exit'
+            'add animal',
+            'feed animal',
+            'play with animal',
+            'send animal to work',
+            'send animal to play',
+            'remove animal',
+            'refresh Zoo',
+            'save Zoo',
+            'exit'
         ];
         while(true) {
             $this->cls();
             $this->showZoo();
-            $helper = new QuestionHelper();
             $choice = new ChoiceQuestion('What would you like to do?', $options);
             $choice->setErrorMessage('Option %s is invalid.');
-            $choice = $helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
+            $choice = $this->helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
             switch ($choice)
             {
-                case 'Add animal':
+                case 'add animal':
                     $name = (string) readline("Enter name: ");
                     $race = (string) readline("Enter Race: ");
                     $bestFood = (array) explode(" ", readline("Enter Best food: "));
                     $this->addAnimal($name, $race, $bestFood);
                     break;
-                case 'Refresh Zoo':
+                case 'refresh Zoo':
                     break;
-                case 'Save Zoo':
+                case 'save Zoo':
                     try {
                         $this->saveZoo();
                     } catch(Exception $e) {
                         echo "Error: " . $e->getMessage() . "\n";
                     }
                     break;
-                case 'Exit':
+                case 'send animal to play':
+                    $animal = $this->selectAnimals();
+                    $animal->setState('playing');
+                    break;
+                case 'send animal to work':
+                    $animal = $this->selectAnimals();
+                    $animal->setState('working');
+                    break;
+                case 'remove animal':
+                    $animal = $this->selectAnimals();
+                    $index = array_search($animal, $this->animals);
+                    unset($this->animals[$index]);
+                    break;
+                case 'exit':
                     exit;
             }
         }
@@ -134,5 +145,17 @@ class Zoo implements JsonSerializable
         } else {
             system('clear');
         }
+    }
+    private function selectAnimals(): Animal
+    {   $this->cls();
+        $this->showZoo();
+        $options = array_map(function ($animal) {
+            return $animal->getName();
+        }, $this->animals);
+        $choice = new ChoiceQuestion('Choose an animal to interact?', $options);
+        $choice->setErrorMessage('Option %s is invalid.');
+        $choice = $this->helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
+        $index = array_search($choice, $options);
+        return $this->animals[$index];
     }
 }

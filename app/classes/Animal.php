@@ -76,4 +76,8 @@ class Animal implements JsonSerializable
     {
         return $this->state;
     }
+    public function setState(string $state): void
+    {
+        $this->state = $state;
+    }
 }
