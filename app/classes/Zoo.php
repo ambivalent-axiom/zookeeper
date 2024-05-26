@@ -186,7 +186,7 @@ class Zoo implements JsonSerializable
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
                     $remainder = $timeTrack%5;
-                    $chargeFor = ($timeTrack - $remainder)/5; //te ir tās reizes cik jāčārdžo
+                    $chargeFor = ($timeTrack - $remainder)/5;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness($chargeFor);
@@ -196,7 +196,7 @@ class Zoo implements JsonSerializable
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
                     $remainder = $timeTrack%5;
-                    $chargeFor = ($timeTrack - $remainder)/5; //te ir tās reizes cik jāčārdžo
+                    $chargeFor = ($timeTrack - $remainder)/5;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness(-$chargeFor);

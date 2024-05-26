@@ -12,15 +12,6 @@ class Zookeeper implements JsonSerializable
             'name' => $this->name,
         ];
     }
-    public function feed(Animal $animal): void
-    {
-        echo "animal happiness ++";
-        echo "animal hungriness --";
-    }
-    public function pet(Animal $animal): void
-    {
-        echo "animal happiness ++";
-    }
     public function getName(): string
     {
         return $this->name;
