@@ -1,70 +1,70 @@
 <?php
-class Animal
+class Animal implements JsonSerializable
 {
     protected string $name;
+    protected string $race;
     protected array $bestFood;
-    protected $happiness;
-    protected $hungriness;
+    protected int $happiness;
+    protected int $hungriness;
     public function __construct(
         string $name,
-        array $bestFood
+        string $race,
+        array $bestFood,
+        int $happiness = 50,
+        int $hungriness = 80
         )
     {
         $this->name = $name;
+        $this->race = $race;
         $this->bestFood = $bestFood;
-        $this->hungriness = 100;
-        $this->happiness = 100;
+        $this->hungriness = $hungriness;
+        $this->happiness = $happiness;
+    }
+    public function jsonSerialize(): array
+    {
+        return [
+            'name' => $this->name,
+            'race' => $this->race,
+            'bestFood' => $this->bestFood,
+            'hungriness' => $this->hungriness,
+            'happiness' => $this->happiness,
+        ];
     }
 
-    protected function play() {
+    protected function play(): void
+    {
         echo "happy ++";
         echo "food --";
     }
-    protected function work() {
+    protected function work(): void
+    {
         echo "happy --";
         echo "food --";
+        echo "zoo money ++";
     }
-    protected function validateFood() {
+    protected function validateFood(): void //should probably return bool
+    {
         if(in_array('food', $this->bestFood)) {
             echo "food++ and happy ++";
         } else {
             echo "food---- and happy --";
         }
     }
-}
 
-class Fish extends Animal
-{
-    public function __construct(string $name, array $bestFood)
+    public function getName(): string
     {
-        parent::__construct($name, $bestFood);
+        return $this->name;
     }
-}
-class Mammal extends Animal
-{
-    public function __construct(string $name, array $bestFood)
+    public function getRace(): string
     {
-        parent::__construct($name, $bestFood);
+        return $this->race;
     }
-}
-class Amphibian extends Animal
-{
-    public function __construct(string $name, array $bestFood)
+    public function getHappiness(): int
     {
-        parent::__construct($name, $bestFood);
+        return $this->happiness;
     }
-}
-class Bird extends Animal
-{
-    public function __construct(string $name, array $bestFood)
+    public function getHungriness(): int
     {
-        parent::__construct($name, $bestFood);
-    }
-}
-class Reptile extends Animal
-{
-    public function __construct(string $name, array $bestFood)
-    {
-        parent::__construct($name, $bestFood);
+        return $this->hungriness;
     }
 }
