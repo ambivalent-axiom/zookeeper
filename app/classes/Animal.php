@@ -6,12 +6,14 @@ class Animal implements JsonSerializable
     protected array $bestFood;
     protected int $happiness;
     protected int $hungriness;
+    protected string $state;
     public function __construct(
         string $name,
         string $race,
         array $bestFood,
         int $happiness = 50,
-        int $hungriness = 80
+        int $hungriness = 80,
+        string $state = 'idle'
         )
     {
         $this->name = $name;
@@ -19,6 +21,7 @@ class Animal implements JsonSerializable
         $this->bestFood = $bestFood;
         $this->hungriness = $hungriness;
         $this->happiness = $happiness;
+        $this->state = $state;
     }
     public function jsonSerialize(): array
     {
@@ -30,7 +33,6 @@ class Animal implements JsonSerializable
             'happiness' => $this->happiness,
         ];
     }
-
     protected function play(): void
     {
         echo "happy ++";
@@ -50,7 +52,10 @@ class Animal implements JsonSerializable
             echo "food---- and happy --";
         }
     }
-
+    public function getFoodStr()
+    {
+        return implode(', ', $this->bestFood);
+    }
     public function getName(): string
     {
         return $this->name;
@@ -66,5 +71,9 @@ class Animal implements JsonSerializable
     public function getHungriness(): int
     {
         return $this->hungriness;
+    }
+    public function getState(): string
+    {
+        return $this->state;
     }
 }
