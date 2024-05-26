@@ -2,7 +2,6 @@
 require_once __DIR__ . '/vendor/autoload.php';
 require_once 'app/classes/Zookeeper.php';
 require_once 'app/classes/Zoo.php';
-use Carbon\Carbon;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

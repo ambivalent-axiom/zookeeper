@@ -1,10 +1,12 @@
 <?php
 require_once 'Animal.php';
+
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Carbon\Carbon;
 class Zoo implements JsonSerializable
 {
     private string $name;
@@ -90,7 +92,7 @@ class Zoo implements JsonSerializable
         $options = [
             'add animal',
             'feed animal',
-            'play with animal',
+            'pet animal',
             'send animal to work',
             'send animal to play',
             'remove animal',
@@ -100,6 +102,7 @@ class Zoo implements JsonSerializable
         ];
         while(true) {
             $this->cls();
+            $this->stateCron();
             $this->showZoo();
             $choice = new ChoiceQuestion('What would you like to do?', $options);
             $choice->setErrorMessage('Option %s is invalid.');
@@ -111,6 +114,15 @@ class Zoo implements JsonSerializable
                     $race = (string) readline("Enter Race: ");
                     $bestFood = (array) explode(" ", readline("Enter Best food: "));
                     $this->addAnimal($name, $race, $bestFood);
+                    break;
+                case 'feed animal':
+                    $animal = $this->selectAnimals();
+                    $animal->feed();
+                    $this->addFunds(-20);
+                    break;
+                case 'pet animal':
+                    $animal = $this->selectAnimals();
+                    $animal->pet();
                     break;
                 case 'refresh Zoo':
                     break;
@@ -124,10 +136,12 @@ class Zoo implements JsonSerializable
                 case 'send animal to play':
                     $animal = $this->selectAnimals();
                     $animal->setState('playing');
+                    $animal->setStateStart(Carbon::now()->timestamp);
                     break;
                 case 'send animal to work':
                     $animal = $this->selectAnimals();
                     $animal->setState('working');
+                    $animal->setStateStart(Carbon::now()->timestamp);
                     break;
                 case 'remove animal':
                     $animal = $this->selectAnimals();
@@ -139,6 +153,22 @@ class Zoo implements JsonSerializable
             }
         }
     }
+    private function selectAnimals(): Animal
+    {   $this->cls();
+        $this->showZoo();
+        $options = array_map(function ($animal) {
+            return strtolower($animal->getName());
+        }, $this->animals);
+        $choice = new ChoiceQuestion('Choose an animal to interact?', $options);
+        $choice->setErrorMessage('Option %s is invalid.');
+        $choice = $this->helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
+        $index = array_search($choice, $options);
+        return $this->animals[$index];
+    }
+    private function addFunds(int $funds): void
+    {
+        $this->funds += $funds;
+    }
     private function cls(): void {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             system('cls');
@@ -146,16 +176,33 @@ class Zoo implements JsonSerializable
             system('clear');
         }
     }
-    private function selectAnimals(): Animal
-    {   $this->cls();
-        $this->showZoo();
-        $options = array_map(function ($animal) {
-            return $animal->getName();
-        }, $this->animals);
-        $choice = new ChoiceQuestion('Choose an animal to interact?', $options);
-        $choice->setErrorMessage('Option %s is invalid.');
-        $choice = $this->helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
-        $index = array_search($choice, $options);
-        return $this->animals[$index];
+    private function stateCron()
+    {
+        foreach ($this->animals as $animal) {
+            $animal->resetCurrent(Carbon::now()->timestamp);
+        }
+        foreach ($this->animals as $animal) {
+            if  ($animal->getState() == 'playing') {
+                $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
+                if($timeTrack > 0) {
+                    $remainder = $timeTrack%5;
+                    $chargeFor = ($timeTrack - $remainder)/5; //te ir tās reizes cik jāčārdžo
+                    $animal->setStateStart(Carbon::now()->timestamp+$remainder);
+                    $animal->addHungriness($chargeFor);
+                    $animal->addHappiness($chargeFor);
+                }
+            }
+            if  ($animal->getState() == 'working') {
+                $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
+                if($timeTrack > 0) {
+                    $remainder = $timeTrack%5;
+                    $chargeFor = ($timeTrack - $remainder)/5; //te ir tās reizes cik jāčārdžo
+                    $animal->setStateStart(Carbon::now()->timestamp+$remainder);
+                    $animal->addHungriness($chargeFor);
+                    $animal->addHappiness(-$chargeFor);
+                    $this->addFunds($chargeFor);
+                }
+            }
+        }
     }
 }

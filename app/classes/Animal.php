@@ -1,12 +1,17 @@
 <?php
+use Carbon\Carbon;
 class Animal implements JsonSerializable
 {
-    protected string $name;
-    protected string $race;
-    protected array $bestFood;
-    protected int $happiness;
-    protected int $hungriness;
-    protected string $state;
+    private string $name;
+    private string $race;
+    private array $bestFood;
+    private int $happiness;
+    private int $hungriness;
+    private string $state;
+    private int $stateStart;
+    private int $current;
+    private $inState;
+
     public function __construct(
         string $name,
         string $race,
@@ -22,6 +27,9 @@ class Animal implements JsonSerializable
         $this->hungriness = $hungriness;
         $this->happiness = $happiness;
         $this->state = $state;
+        $this->stateStart = Carbon::now()->timestamp;
+        $this->current = Carbon::now()->timestamp;
+        $this->inState = 0;
     }
     public function jsonSerialize(): array
     {
@@ -33,24 +41,27 @@ class Animal implements JsonSerializable
             'happiness' => $this->happiness,
         ];
     }
-    protected function play(): void
+    public function feed(): void
     {
-        echo "happy ++";
-        echo "food --";
-    }
-    protected function work(): void
-    {
-        echo "happy --";
-        echo "food --";
-        echo "zoo money ++";
-    }
-    protected function validateFood(): void //should probably return bool
-    {
-        if(in_array('food', $this->bestFood)) {
-            echo "food++ and happy ++";
-        } else {
-            echo "food---- and happy --";
+        if($this->validateFood(readline("What are you going to feed: ")))
+        {
+            $this->addHappiness(10);
+            $this->addHungriness(-20);
+            return;
         }
+        $this->addHungriness(10);
+        $this->addHappiness(-10);
+    }
+    public function pet(): void
+    {
+        $this->addHappiness(10);
+    }
+    private function validateFood($food): bool
+    {
+        if(in_array($food, $this->bestFood)) {
+            return true;
+        }
+        return false;
     }
     public function getFoodStr()
     {
@@ -68,9 +79,17 @@ class Animal implements JsonSerializable
     {
         return $this->happiness;
     }
+    public function addHappiness(int $happiness): void
+    {
+        $this->happiness += $happiness;
+    }
     public function getHungriness(): int
     {
         return $this->hungriness;
+    }
+    public function addHungriness(int $hungriness): void
+    {
+        $this->hungriness += $hungriness;
     }
     public function getState(): string
     {
@@ -80,4 +99,17 @@ class Animal implements JsonSerializable
     {
         $this->state = $state;
     }
+    public function setStateStart(int $stateStart): void
+    {
+        $this->stateStart = $stateStart;
+    }
+    public function getStateStart(): int
+    {
+        return $this->stateStart;
+    }
+    public function resetCurrent(int $current): void
+    {
+        $this->current = $current;
+    }
+
 }
