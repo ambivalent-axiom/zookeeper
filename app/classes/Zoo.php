@@ -103,6 +103,7 @@ class Zoo implements JsonSerializable
         while(true) {
             $this->cls();
             $this->stateCron();
+            $this->removeDeadAnimals();
             $this->showZoo();
             $choice = new ChoiceQuestion('What would you like to do?', $options);
             $choice->setErrorMessage('Option %s is invalid.');
@@ -199,6 +200,18 @@ class Zoo implements JsonSerializable
                     $animal->addHappiness(-$chargeFor);
                     $this->addFunds($chargeFor);
                 }
+            }
+        }
+    }
+    private function removeDeadAnimals(): void {
+        foreach ($this->animals as $animal) {
+            if ($animal->getHungriness() >= 100) {
+                $position = array_search($animal, $this->animals);
+                unset($this->animals[$position]);
+            }
+            if ($animal->getHappiness() <= 0) {
+                $position = array_search($animal, $this->animals);
+                unset($this->animals[$position]);
             }
         }
     }

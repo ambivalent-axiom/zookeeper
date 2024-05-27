@@ -78,6 +78,9 @@ class Animal implements JsonSerializable
     }
     public function addHappiness(int $happiness): void
     {
+        if($this->happiness += $happiness > 100) {
+            $this->happiness = 100;
+        }
         $this->happiness += $happiness;
     }
     public function getHungriness(): int
@@ -86,6 +89,9 @@ class Animal implements JsonSerializable
     }
     public function addHungriness(int $hungriness): void
     {
+        if($this->hungriness += $hungriness < 0) {
+            $this->hungriness = 0;
+        }
         $this->hungriness += $hungriness;
     }
     public function getState(): string
