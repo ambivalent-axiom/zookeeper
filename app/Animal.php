@@ -1,5 +1,7 @@
 <?php
+namespace App;
 use Carbon\Carbon;
+use JsonSerializable;
 class Animal implements JsonSerializable
 {
     private string $name;
@@ -14,11 +16,11 @@ class Animal implements JsonSerializable
     public function __construct(
         string $name,
         string $race,
-        array $bestFood,
-        int $happiness = 50,
-        int $hungriness = 80,
+        array  $bestFood,
+        int    $happiness = 50,
+        int    $hungriness = 80,
         string $state = 'idle'
-        )
+    )
     {
         $this->name = $name;
         $this->race = $race;
@@ -28,6 +30,7 @@ class Animal implements JsonSerializable
         $this->state = $state;
         $this->stateStart = Carbon::now()->timestamp;
     }
+
     public function jsonSerialize(): array
     {
         return [
@@ -38,10 +41,10 @@ class Animal implements JsonSerializable
             'happiness' => $this->happiness,
         ];
     }
+
     public function feed(): void
     {
-        if($this->validateFood(readline("What are you going to feed: ")))
-        {
+        if ($this->validateFood(readline("What are you going to feed: "))) {
             $this->addHappiness(10);
             $this->addHungriness(-20);
             return;
@@ -49,63 +52,76 @@ class Animal implements JsonSerializable
         $this->addHungriness(10);
         $this->addHappiness(-10);
     }
+
     public function pet(): void
     {
         $this->addHappiness(10);
     }
+
     private function validateFood($food): bool
     {
-        if(in_array($food, $this->bestFood)) {
+        if (in_array($food, $this->bestFood)) {
             return true;
         }
         return false;
     }
+
     public function getFoodStr()
     {
         return implode(', ', $this->bestFood);
     }
+
     public function getName(): string
     {
         return $this->name;
     }
+
     public function getRace(): string
     {
         return $this->race;
     }
+
     public function getHappiness(): int
     {
         return $this->happiness;
     }
+
     public function addHappiness(int $happiness): void
     {
-        if($this->happiness += $happiness > 100) {
+        if ($this->happiness += $happiness > 100) {
             $this->happiness = 100;
         }
         $this->happiness += $happiness;
     }
+
     public function getHungriness(): int
     {
         return $this->hungriness;
     }
+
     public function addHungriness(int $hungriness): void
     {
-        if($this->hungriness += $hungriness < 0) {
+        if ($this->hungriness += $hungriness < 0) {
             $this->hungriness = 0;
         }
         $this->hungriness += $hungriness;
     }
+
     public function getState(): string
     {
         return $this->state;
     }
+
     public function setState(string $state): void
     {
         $this->state = $state;
     }
+
     public function setStateStart(int $stateStart): void
     {
         $this->stateStart = $stateStart;
     }
+
     public function getStateStart(): int
     {
         return $this->stateStart;

@@ -1,22 +1,24 @@
 <?php
-require_once 'Animal.php';
-
-use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Question\ChoiceQuestion;
+namespace App;
+use Exception;
+use JsonSerializable;
 use Carbon\Carbon;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
+
 class Zoo implements JsonSerializable
 {
     private string $name;
-    private Zookeeper $keeper;
+    private ZooKeeper $keeper;
     private int $funds;
     private array $animals;
     private OutputInterface $symfonyOutput;
     private InputInterface $symfonyInput;
     private QuestionHelper $helper;
-    public function __construct(string $name, Zookeeper $keeper, $symfonyOutput, $symfonyInput, array $animals=[], int $funds=1000)
+    public function __construct(string $name, ZooKeeper $keeper, $symfonyOutput, $symfonyInput, array $animals=[], int $funds=1000)
     {
             $this->name = $name;
             $this->keeper = $keeper;
@@ -52,7 +54,7 @@ class Zoo implements JsonSerializable
                 ];
             }, $this->animals));
         $table->setHeaderTitle($this->name . " Credits: " . $this->funds);
-        $table->setFooterTitle("Zookeeper: " . $this->keeper->getName());
+        $table->setFooterTitle("ZooKeeper: " . $this->keeper->getName());
         $table->setStyle('box-double');
         $table->render();
     }

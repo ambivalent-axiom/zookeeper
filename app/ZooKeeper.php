@@ -1,5 +1,7 @@
 <?php
-class Zookeeper implements JsonSerializable
+namespace App;
+use JsonSerializable;
+class ZooKeeper implements JsonSerializable
 {
     private string $name;
     public function __construct(string $name)
