@@ -50,7 +50,16 @@ class Animal implements JsonSerializable
     public function feed(): void
     {
 
-        if ($this->validateFood(Zoo::validateName('Food', "What are you going to feed: "))) {
+        if ($this->validateFood(
+            strtolower(
+                Zoo::validateName(
+                    'Food',
+                    "What are you going to feed: "
+                )
+            )
+            )
+            )
+        {
             $this->addHappiness(self::SMALL_CHARGE);
             $this->addHungriness(-self::MEDIUM_CHARGE);
             $this->zoo->addToMessages(

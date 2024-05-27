@@ -32,7 +32,7 @@ class Zoo implements JsonSerializable
         OutputInterface $symfonyOutput,
         InputInterface $symfonyInput,
         array $animals=[],
-        int $funds=1000)
+        int $funds=500)
     {
             $this->name = $name;
             $this->keeper = $keeper;
@@ -146,16 +146,27 @@ class Zoo implements JsonSerializable
                     echo "Cost of action:" . self::ANIMAL_COST . 'c' . "\n";
                     $name = self::validateName('Name', "Enter name: ");
                     $race = self::validateName('Race', "Enter race: ");
-                    $bestFood = (array) explode(" ", readline("Enter Best food, separate by space: "));
+                    $bestFood = (array) explode(
+                        " ",
+                        strtolower(
+                            readline("Enter Best food, separate by space: ")
+                        )
+                    );
                     $this->addAnimal($name, $race, $bestFood);
                     break;
                 case 'feed animal':
+                    if($this->checkAnimalCount()) {
+                        break;
+                    }
                     echo "Cost of action: " . self::FEEDING_COST . 'c' . "\n";
                     $animal = $this->selectAnimals();
                     $animal->feed();
                     $this->addFunds(-self::FEEDING_COST);
                     break;
                 case 'pet animal':
+                    if($this->checkAnimalCount()) {
+                        break;
+                    }
                     $animal = $this->selectAnimals();
                     $animal->pet();
                     break;
@@ -169,16 +180,25 @@ class Zoo implements JsonSerializable
                     }
                     break;
                 case 'send animal to play':
+                    if($this->checkAnimalCount()) {
+                        break;
+                    }
                     $animal = $this->selectAnimals();
                     $animal->setState('playing');
                     $animal->setStateStart(Carbon::now()->timestamp);
                     break;
                 case 'send animal to work':
+                    if($this->checkAnimalCount()) {
+                        break;
+                    }
                     $animal = $this->selectAnimals();
                     $animal->setState('working');
                     $animal->setStateStart(Carbon::now()->timestamp);
                     break;
                 case 'remove animal':
+                    if($this->checkAnimalCount()) {
+                        break;
+                    }
                     $animal = $this->selectAnimals();
                     $this->removeAnimal($animal);
                     break;
@@ -263,10 +283,11 @@ class Zoo implements JsonSerializable
                 $this->message[] = $this->message($animal->getName(),
                     'died',
                     'due to hunger.',
-                    'Removed from ' . $this->getName(),
-                    $animal->getName()
+                    'Removed ' . $animal->getName() . " from",
+                    $this->getName()
                 );
                 unset($this->animals[$position]);
+                return;
 
             }
             if ($animal->getHappiness() <= self::MIN) {
@@ -274,8 +295,8 @@ class Zoo implements JsonSerializable
                 $this->message[] = $this->message($animal->getName(),
                     'died',
                     'due to being very upset.',
-                    'Removed from ' . $this->getName(),
-                    $animal->getName()
+                    'Removed ' . $animal->getName() . " from",
+                    $this->getName()
                 );
                 unset($this->animals[$position]);
             }
@@ -322,6 +343,13 @@ class Zoo implements JsonSerializable
     public function addToMessages(string $message): void
     {
         $this->message[] = $message;
+    }
+    private function checkAnimalCount(): bool {
+        if(count($this->animals) === 0) {
+            $this->addToMessages('No animals to interact with. Buy some!');
+            return true;
+        }
+        return false;
     }
     public static function validateName(string $who, string $prompt): string
     {
