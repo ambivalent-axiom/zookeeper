@@ -13,6 +13,11 @@ class Animal implements JsonSerializable
     private int $hungriness;
     private string $state;
     private int $stateStart;
+    const SMALL_CHARGE = 10;
+    const MEDIUM_CHARGE = 20;
+    const MAX = 100;
+    const MIN = 0;
+    const DEFAULT_STARTER = 50;
 
     public function __construct(
         string $name,
@@ -20,8 +25,8 @@ class Animal implements JsonSerializable
         ZooKeeper $keeper,
         Zoo $zoo,
         array  $bestFood,
-        int    $happiness = 50,
-        int    $hungriness = 80,
+        int    $happiness = self::DEFAULT_STARTER,
+        int    $hungriness = self::DEFAULT_STARTER,
         string $state = 'idle'
     )
     {
@@ -50,35 +55,35 @@ class Animal implements JsonSerializable
     {
 
         if ($this->validateFood(Zoo::validateName('Food', "What are you going to feed: "))) {
-            $this->addHappiness(10);
-            $this->addHungriness(-20);
+            $this->addHappiness(self::SMALL_CHARGE);
+            $this->addHungriness(-self::MEDIUM_CHARGE);
             $this->zoo->addToMessages(
                 Zoo::message($this->getKeeper(),
                     'fed correct food',
                     $this->name,
-                    'Happiness +' . 10 . ' Hunger -' . 20 . ' credit -' . 20
+                    'Happiness +' . self::SMALL_CHARGE . ' Hunger -' . self::MEDIUM_CHARGE . ' credit -' . self::MEDIUM_CHARGE
                 )
             );
             return;
         }
-        $this->addHungriness(10);
-        $this->addHappiness(-10);
+        $this->addHungriness(self::SMALL_CHARGE);
+        $this->addHappiness(-self::SMALL_CHARGE);
         $this->zoo->addToMessages(
             Zoo::message($this->getKeeper(),
                 'fed incorrect food',
                 $this->name,
-                'Happiness -' . 10 . ' Hunger +' . 10 . ' credit -' . 20
+                'Happiness -' . self::SMALL_CHARGE . ' Hunger +' . self::SMALL_CHARGE . ' credit -' . self::MEDIUM_CHARGE
             )
         );
     }
     public function pet(): void
     {
-        $this->addHappiness(10);
+        $this->addHappiness(self::SMALL_CHARGE);
         $this->zoo->addToMessages(
             Zoo::message($this->getKeeper(),
                 'petted',
                 $this->name,
-                'Happiness +' . 10
+                'Happiness +' . self::SMALL_CHARGE
             )
         );
     }
@@ -107,8 +112,8 @@ class Animal implements JsonSerializable
     }
     public function addHappiness(int $happiness): void
     {
-        if ($this->happiness + $happiness > 100) {
-            $this->happiness = 100;
+        if ($this->happiness + $happiness > self::MAX) {
+            $this->happiness = self::MAX;
         }
         $this->happiness += $happiness;
     }
@@ -118,8 +123,8 @@ class Animal implements JsonSerializable
     }
     public function addHungriness(int $hungriness): void
     {
-        if (($this->hungriness + $hungriness) < 0) {
-            $this->hungriness = 0;
+        if (($this->hungriness + $hungriness) < self::MIN) {
+            $this->hungriness = self::MIN;
         }
         $this->hungriness += $hungriness;
     }

@@ -22,6 +22,10 @@ class Zoo implements JsonSerializable
 
     const FEEDING_COST = 20;
     const ANIMAL_COST = 100;
+    const VALID_STR_LENGTH = 12; //string validation function
+    const MAX = 100;
+    const MIN = 0;
+    const CHARGE_STEP = 5; //seconds
     public function __construct(
         string $name,
         ZooKeeper $keeper,
@@ -72,11 +76,11 @@ class Zoo implements JsonSerializable
     private function addAnimal(string $name, string $race, array $bestFood): void
     {
         $this->animals[] = new Animal($name, $race, $this->keeper, $this, $bestFood);
-        $this->addFunds(-100);
+        $this->addFunds(-self::ANIMAL_COST);
         $this->message[] = $this->message(
             $this->keeper->getName(),
             'bought for',
-            100 . 'credits',
+            self::ANIMAL_COST . 'credits',
             $this->getName(),
             $name . " the " . $race . "."
         );
@@ -102,6 +106,8 @@ class Zoo implements JsonSerializable
             $animals[] = new Animal(
                 $animal->name,
                 $animal->race,
+                $animal->keeper,
+                $animal->zoo,
                 $animal->bestFood,
                 $animal->hungriness,
                 $animal->happiness
@@ -208,9 +214,9 @@ class Zoo implements JsonSerializable
             if  ($animal->getState() == 'playing') {
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
-                    $remainder = $timeTrack%5;
+                    $remainder = $timeTrack%self::CHARGE_STEP;
                     $period = $timeTrack - $remainder;
-                    $chargeFor = $period/5;
+                    $chargeFor = $period/self::CHARGE_STEP;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness($chargeFor);
@@ -224,9 +230,9 @@ class Zoo implements JsonSerializable
             if  ($animal->getState() == 'working') {
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
-                    $remainder = $timeTrack%5;
+                    $remainder = $timeTrack%self::CHARGE_STEP;
                     $period = $timeTrack - $remainder;
-                    $chargeFor = $period/5;
+                    $chargeFor = $period/self::CHARGE_STEP;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness(-$chargeFor);
@@ -243,7 +249,7 @@ class Zoo implements JsonSerializable
     }
     private function removeDeadAnimals(): void {
         foreach ($this->animals as $animal) {
-            if ($animal->getHungriness() >= 100) {
+            if ($animal->getHungriness() >= self::MAX) {
                 $position = array_search($animal, $this->animals);
                 $this->message[] = $this->message($animal->getName(),
                     'died',
@@ -254,7 +260,7 @@ class Zoo implements JsonSerializable
                 unset($this->animals[$position]);
 
             }
-            if ($animal->getHappiness() <= 0) {
+            if ($animal->getHappiness() <= self::MIN) {
                 $position = array_search($animal, $this->animals);
                 $this->message[] = $this->message($animal->getName(),
                     'died',
@@ -312,7 +318,7 @@ class Zoo implements JsonSerializable
     {
         while(true) {
             $name = readline($prompt);
-            if($name != '' && strlen($name) <= 12 && !is_numeric($name)) {
+            if($name != '' && strlen($name) <= self::VALID_STR_LENGTH && !is_numeric($name)) {
                 return $name;
             }
             echo "$who name must be a string, max 12 chars.\n";
