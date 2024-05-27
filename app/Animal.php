@@ -11,7 +11,6 @@ class Animal implements JsonSerializable
     private int $hungriness;
     private string $state;
     private int $stateStart;
-    private int $current;
 
     public function __construct(
         string $name,
@@ -41,7 +40,6 @@ class Animal implements JsonSerializable
             'happiness' => $this->happiness,
         ];
     }
-
     public function feed(): void
     {
         if ($this->validateFood(readline("What are you going to feed: "))) {
@@ -52,12 +50,10 @@ class Animal implements JsonSerializable
         $this->addHungriness(10);
         $this->addHappiness(-10);
     }
-
     public function pet(): void
     {
         $this->addHappiness(10);
     }
-
     private function validateFood($food): bool
     {
         if (in_array($food, $this->bestFood)) {
@@ -65,27 +61,22 @@ class Animal implements JsonSerializable
         }
         return false;
     }
-
-    public function getFoodStr()
+    public function getFoodStr(): string
     {
         return implode(', ', $this->bestFood);
     }
-
     public function getName(): string
     {
         return $this->name;
     }
-
     public function getRace(): string
     {
         return $this->race;
     }
-
     public function getHappiness(): int
     {
         return $this->happiness;
     }
-
     public function addHappiness(int $happiness): void
     {
         if ($this->happiness += $happiness > 100) {
@@ -93,12 +84,10 @@ class Animal implements JsonSerializable
         }
         $this->happiness += $happiness;
     }
-
     public function getHungriness(): int
     {
         return $this->hungriness;
     }
-
     public function addHungriness(int $hungriness): void
     {
         if ($this->hungriness += $hungriness < 0) {
@@ -106,22 +95,18 @@ class Animal implements JsonSerializable
         }
         $this->hungriness += $hungriness;
     }
-
     public function getState(): string
     {
         return $this->state;
     }
-
     public function setState(string $state): void
     {
         $this->state = $state;
     }
-
     public function setStateStart(int $stateStart): void
     {
         $this->stateStart = $stateStart;
     }
-
     public function getStateStart(): int
     {
         return $this->stateStart;
