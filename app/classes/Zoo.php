@@ -15,6 +15,7 @@ class Zoo implements JsonSerializable
     private array $animals;
     private OutputInterface $symfonyOutput;
     private InputInterface $symfonyInput;
+    private QuestionHelper $helper;
     public function __construct(string $name, Zookeeper $keeper, $symfonyOutput, $symfonyInput, array $animals=[], int $funds=1000)
     {
             $this->name = $name;
@@ -61,8 +62,8 @@ class Zoo implements JsonSerializable
     }
     private function saveZoo(): void
     {
-        $zoo = 'savedZoos/' . $this->name . '/' . $this->name . '.json';
-        $path = 'savedZoos/' . $this->name . '/';
+        $zoo = 'savedZoos/' . strtolower($this->name) . '/' . strtolower($this->name) . '.json';
+        $path = 'savedZoos/' . strtolower($this->name) . '/';
         if( ! file_exists($zoo))
         {
             mkdir($path, 0777, true);
