@@ -143,25 +143,33 @@ class Zoo implements JsonSerializable
             switch ($choice)
             {
                 case 'add animal':
-                    echo "Cost of action:" . self::ANIMAL_COST . 'c' . "\n";
-                    $name = self::validateName('Name', "Enter name: ");
-                    $race = self::validateName('Race', "Enter race: ");
-                    $bestFood = (array) explode(
-                        " ",
-                        strtolower(
-                            readline("Enter Best food, separate by space: ")
-                        )
-                    );
-                    $this->addAnimal($name, $race, $bestFood);
+                    if($this->checkEnoughFunds(self::ANIMAL_COST)) {
+                        echo "Cost of action: " . self::ANIMAL_COST . 'c' . "\n";
+                        $name = self::validateName('Name', "Enter name: ");
+                        $race = self::validateName('Race', "Enter race: ");
+                        $bestFood = (array)explode(
+                            " ",
+                            strtolower(
+                                readline("Enter Best food, separate by space: ")
+                            )
+                        );
+                        $this->addAnimal($name, $race, $bestFood);
+                        break;
+                    }
+                    $this->addToMessages('Sorry, not enough funds to buy an animal.');
                     break;
                 case 'feed animal':
                     if($this->checkAnimalCount()) {
                         break;
                     }
-                    echo "Cost of action: " . self::FEEDING_COST . 'c' . "\n";
-                    $animal = $this->selectAnimals();
-                    $animal->feed();
-                    $this->addFunds(-self::FEEDING_COST);
+                    if($this->checkEnoughFunds(self::FEEDING_COST)) {
+                        echo "Cost of action: " . self::FEEDING_COST . 'c' . "\n";
+                        $animal = $this->selectAnimals();
+                        $animal->feed();
+                        $this->addFunds(-self::FEEDING_COST);
+                        break;
+                    }
+                    $this->addToMessages('Sorry, not enough funds to feed an animal.');
                     break;
                 case 'pet animal':
                     if($this->checkAnimalCount()) {
@@ -350,6 +358,13 @@ class Zoo implements JsonSerializable
             return true;
         }
         return false;
+    }
+    private function checkEnoughFunds($amount): bool
+    {
+        if($this->funds < $amount) {
+            return false;
+        }
+        return true;
     }
     public static function validateName(string $who, string $prompt): string
     {
