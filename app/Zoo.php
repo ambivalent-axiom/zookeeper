@@ -15,15 +15,26 @@ class Zoo implements JsonSerializable
     private ZooKeeper $keeper;
     private int $funds;
     private array $animals;
+    private array $message;
     private OutputInterface $symfonyOutput;
     private InputInterface $symfonyInput;
     private QuestionHelper $helper;
-    public function __construct(string $name, ZooKeeper $keeper, $symfonyOutput, $symfonyInput, array $animals=[], int $funds=1000)
+
+    const FEEDING_COST = 20;
+    const ANIMAL_COST = 100;
+    public function __construct(
+        string $name,
+        ZooKeeper $keeper,
+        OutputInterface $symfonyOutput,
+        InputInterface $symfonyInput,
+        array $animals=[],
+        int $funds=1000)
     {
             $this->name = $name;
             $this->keeper = $keeper;
             $this->animals = $animals;
             $this->funds = $funds;
+            $this->message = [];
             $this->symfonyOutput = $symfonyOutput;
             $this->symfonyInput = $symfonyInput;
             $this->helper = new QuestionHelper();
@@ -60,7 +71,15 @@ class Zoo implements JsonSerializable
     }
     private function addAnimal(string $name, string $race, array $bestFood): void
     {
-        $this->animals[] = new Animal($name, $race, $bestFood);
+        $this->animals[] = new Animal($name, $race, $this->keeper, $this, $bestFood);
+        $this->addFunds(-100);
+        $this->message[] = $this->message(
+            $this->keeper->getName(),
+            'bought for',
+            100 . 'credits',
+            $this->getName(),
+            $name . " the " . $race . "."
+        );
     }
     private function saveZoo(): void
     {
@@ -108,21 +127,25 @@ class Zoo implements JsonSerializable
             $this->stateCron();
             $this->removeDeadAnimals();
             $this->showZoo();
+            $this->printMessages();
+            $this->clearMessages();
             $choice = new ChoiceQuestion('What would you like to do?', $options);
             $choice->setErrorMessage('Option %s is invalid.');
             $choice = $this->helper->ask($this->symfonyInput, $this->symfonyOutput, $choice);
             switch ($choice)
             {
                 case 'add animal':
-                    $name = (string) readline("Enter name: ");
-                    $race = (string) readline("Enter Race: ");
-                    $bestFood = (array) explode(" ", readline("Enter Best food: "));
+                    echo "Cost of action:" . self::ANIMAL_COST . 'c' . "\n";
+                    $name = self::validateName('Name', "Enter name: ");
+                    $race = self::validateName('Race', "Enter race: ");
+                    $bestFood = (array) explode(" ", readline("Enter Best food, separate by space: "));
                     $this->addAnimal($name, $race, $bestFood);
                     break;
                 case 'feed animal':
+                    echo "Cost of action: " . self::FEEDING_COST . 'c' . "\n";
                     $animal = $this->selectAnimals();
                     $animal->feed();
-                    $this->addFunds(-20);
+                    $this->addFunds(-self::FEEDING_COST);
                     break;
                 case 'pet animal':
                     $animal = $this->selectAnimals();
@@ -149,8 +172,7 @@ class Zoo implements JsonSerializable
                     break;
                 case 'remove animal':
                     $animal = $this->selectAnimals();
-                    $index = array_search($animal, $this->animals);
-                    unset($this->animals[$index]);
+                    $this->removeAnimal($animal);
                     break;
                 case 'exit':
                     exit;
@@ -173,7 +195,7 @@ class Zoo implements JsonSerializable
     {
         $this->funds += $funds;
     }
-    private function cls(): void {
+    public static function cls(): void {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             system('cls');
         } else {
@@ -187,21 +209,34 @@ class Zoo implements JsonSerializable
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
                     $remainder = $timeTrack%5;
-                    $chargeFor = ($timeTrack - $remainder)/5;
+                    $period = $timeTrack - $remainder;
+                    $chargeFor = $period/5;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness($chargeFor);
+                    $this->message[] = $this->message($animal->getName(),
+                        'played',
+                        'for ' . $period . 'sec.',
+                        'Happiness +' . $chargeFor . ' Hunger +' . $chargeFor
+                    );
                 }
             }
             if  ($animal->getState() == 'working') {
                 $timeTrack = Carbon::now()->timestamp - $animal->getStateStart();
                 if($timeTrack > 0) {
                     $remainder = $timeTrack%5;
-                    $chargeFor = ($timeTrack - $remainder)/5;
+                    $period = $timeTrack - $remainder;
+                    $chargeFor = $period/5;
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness(-$chargeFor);
                     $this->addFunds($chargeFor);
+                    $this->message[] = $this->message($animal->getName(),
+                        'worked',
+                        'for ' . $period . 'sec.',
+                        'Happiness -' . $chargeFor . ' Hunger +' . $chargeFor,
+                        $this->getName() . " credits +" . $chargeFor
+                    );
                 }
             }
         }
@@ -210,12 +245,77 @@ class Zoo implements JsonSerializable
         foreach ($this->animals as $animal) {
             if ($animal->getHungriness() >= 100) {
                 $position = array_search($animal, $this->animals);
+                $this->message[] = $this->message($animal->getName(),
+                    'died',
+                    'due to hunger.',
+                    'Removed from ' . $this->getName(),
+                    $animal->getName()
+                );
                 unset($this->animals[$position]);
+
             }
             if ($animal->getHappiness() <= 0) {
                 $position = array_search($animal, $this->animals);
+                $this->message[] = $this->message($animal->getName(),
+                    'died',
+                    'due to being very upset.',
+                    'Removed from ' . $this->getName(),
+                    $animal->getName()
+                );
                 unset($this->animals[$position]);
             }
+        }
+    }
+    private function removeAnimal($animal): void
+    {
+        $index = array_search($animal, $this->animals);
+        $this->message[] = $this->message(
+            $this->keeper->getName(),
+            'removed',
+            $animal->getName(),
+            'from ' . $this->getName()
+        );
+        unset($this->animals[$index]);
+    }
+    public static function message(
+        string $who,
+        string $action,
+        string $how,
+        string $result,
+        string $what = ''): string {
+        return Carbon::now()->toDateTimeString() .
+            " " .
+            $who . " " .
+            $action . " " .
+            $how . " " .
+            $result . " " .
+            $what;
+    }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    private function printMessages() {
+        foreach ($this->message as $message) {
+            echo $message . "\n";
+        }
+    }
+    private function clearMessages(): void
+    {
+        $this->message = [];
+    }
+    public function addToMessages(string $message): void
+    {
+        $this->message[] = $message;
+    }
+    public static function validateName(string $who, string $prompt): string
+    {
+        while(true) {
+            $name = readline($prompt);
+            if($name != '' && strlen($name) <= 12 && !is_numeric($name)) {
+                return $name;
+            }
+            echo "$who name must be a string, max 12 chars.\n";
         }
     }
 }

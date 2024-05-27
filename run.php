@@ -9,17 +9,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
-function validateName(string $who): string
-    {
-        while(true) {
-            $name = readline("Enter $who name: ");
-            if($name != '' && strlen($name) <= 12 && !is_numeric($name)) {
-                return ucfirst($name);
-            }
-            echo "$who name must be a string, max 12 chars.\n";
-        }
-    }
-
 $application = new Application();
 $playCommand = new class extends Command {
     protected static $defaultName = 'start';
@@ -42,8 +31,8 @@ $playCommand = new class extends Command {
 
         if($choice === 'new Zoo') {
             //Init new zoo
-            $keeper = new ZooKeeper(validateName('keeper'));
-            $zoo = new Zoo(validateName('Zoo'), $keeper, $output, $input);
+            $keeper = new ZooKeeper(Zoo::validateName('keeper', 'Enter Your name: '));
+            $zoo = new Zoo(Zoo::validateName('zoo', 'Name Your Zoo: '), $keeper, $output, $input);
         } else {
             //load zoo
             $address = 'savedZoos/' . $choice . '/' . $choice . '.json';
