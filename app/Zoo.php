@@ -42,6 +42,7 @@ class Zoo implements JsonSerializable
             $this->symfonyOutput = $symfonyOutput;
             $this->symfonyInput = $symfonyInput;
             $this->helper = new QuestionHelper();
+            $this->initAnimalsOnLoad();
             $this->mainLoop();
     }
     public function jsonSerialize(): array
@@ -75,14 +76,17 @@ class Zoo implements JsonSerializable
     }
     private function addAnimal(string $name, string $race, array $bestFood): void
     {
-        $this->animals[] = new Animal($name, $race, $this->keeper, $this, $bestFood);
+        $newAnimal = new Animal($name, $race, $bestFood);
+        $newAnimal->setKeeper($this->keeper);
+        $newAnimal->setZoo($this);
+        $this->animals[] = $newAnimal;
         $this->addFunds(-self::ANIMAL_COST);
         $this->message[] = $this->message(
             $this->keeper->getName(),
             'bought for',
-            self::ANIMAL_COST . 'credits',
-            $this->getName(),
-            $name . " the " . $race . "."
+            self::ANIMAL_COST . ' credits',
+            $name . " the " . $race . ".",
+            'for ' . $this->getName() . '.'
         );
     }
     private function saveZoo(): void
@@ -106,8 +110,6 @@ class Zoo implements JsonSerializable
             $animals[] = new Animal(
                 $animal->name,
                 $animal->race,
-                $animal->keeper,
-                $animal->zoo,
                 $animal->bestFood,
                 $animal->hungriness,
                 $animal->happiness
@@ -183,6 +185,13 @@ class Zoo implements JsonSerializable
                 case 'exit':
                     exit;
             }
+        }
+    }
+    private function initAnimalsOnLoad(): void
+    {
+        foreach ($this->animals as $animal) {
+            $animal->setKeeper($this->keeper);
+            $animal->setZoo($this);
         }
     }
     private function selectAnimals(): Animal

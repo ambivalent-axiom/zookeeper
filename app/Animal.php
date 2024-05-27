@@ -22,8 +22,6 @@ class Animal implements JsonSerializable
     public function __construct(
         string $name,
         string $race,
-        ZooKeeper $keeper,
-        Zoo $zoo,
         array  $bestFood,
         int    $happiness = self::DEFAULT_STARTER,
         int    $hungriness = self::DEFAULT_STARTER,
@@ -32,8 +30,6 @@ class Animal implements JsonSerializable
     {
         $this->name = $name;
         $this->race = $race;
-        $this->keeper = $keeper;
-        $this->zoo = $zoo;
         $this->bestFood = $bestFood;
         $this->hungriness = $hungriness;
         $this->happiness = $happiness;
@@ -147,5 +143,13 @@ class Animal implements JsonSerializable
     private function getKeeper(): string
     {
         return $this->keeper->getName();
+    }
+    public function setKeeper(ZooKeeper $keeper): void
+    {
+        $this->keeper = $keeper;
+    }
+    public function setZoo(Zoo $zoo): void
+    {
+        $this->zoo = $zoo;
     }
 }
