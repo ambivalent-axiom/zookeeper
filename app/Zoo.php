@@ -99,6 +99,14 @@ class Zoo implements JsonSerializable
         }
         $json = json_encode($this);
         file_put_contents($zoo, $json);
+        $this->addToMessages(
+            self::message(
+                $this->keeper->getName(),
+                'save',
+                $this->getName(),
+                'success!'
+            ),
+        );
     }
     public static function loadZoo(string $json, OutputInterface $output, InputInterface $input): Zoo
     {
@@ -156,7 +164,14 @@ class Zoo implements JsonSerializable
                         $this->addAnimal($name, $race, $bestFood);
                         break;
                     }
-                    $this->addToMessages('Sorry, not enough funds to buy an animal.');
+                    $this->addToMessages(
+                        self::message(
+                            $this->getName(),
+                            'credit',
+                            $this->funds . ".",
+                            'Sorry, not enough funds to buy an animal.'
+                        )
+                    );
                     break;
                 case 'feed animal':
                     if($this->checkAnimalCount()) {
@@ -169,7 +184,14 @@ class Zoo implements JsonSerializable
                         $this->addFunds(-self::FEEDING_COST);
                         break;
                     }
-                    $this->addToMessages('Sorry, not enough funds to feed an animal.');
+                    $this->addToMessages(
+                        self::message(
+                            $this->getName(),
+                            'credit',
+                            $this->funds . ".",
+                            'Sorry, not enough funds to feed an animal.'
+                        )
+                    );
                     break;
                 case 'pet animal':
                     if($this->checkAnimalCount()) {
@@ -211,6 +233,14 @@ class Zoo implements JsonSerializable
                     $this->removeAnimal($animal);
                     break;
                 case 'exit':
+                    $this->addToMessages(
+                        self::message(
+                            $this->keeper->getName(),
+                            "exit",
+                            $this->getName(),
+                            "zoo closed."
+                        )
+                    );
                     exit;
             }
         }
@@ -348,8 +378,9 @@ class Zoo implements JsonSerializable
     {
         $this->message = [];
     }
-    public function addToMessages(string $message): void
+    public function addToMessages(string $message): void // logging added here
     {
+        $this->logMessage($message);
         $this->message[] = $message;
     }
     private function checkAnimalCount(): bool {
@@ -374,6 +405,14 @@ class Zoo implements JsonSerializable
                 return $name;
             }
             echo "$who name must be a string, max 12 chars.\n";
+        }
+    }
+    private function logMessage($entry) {
+        $logFile = 'savedZoos/' . strtolower($this->getName()) . '/' . strtolower($this->getName()) . '.log';
+        $open = fopen($logFile, "a");
+        if($open) {
+            fwrite($open, $entry . "\n");
+            fclose($open);
         }
     }
 }
