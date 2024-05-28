@@ -287,10 +287,12 @@ class Zoo implements JsonSerializable
                     $animal->setStateStart(Carbon::now()->timestamp+$remainder);
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness($chargeFor);
-                    $this->message[] = $this->message($animal->getName(),
-                        'played',
-                        'for ' . $period . 'sec.',
-                        'Happiness +' . $chargeFor . ' Hunger +' . $chargeFor
+                    $this->addToMessages(
+                        $this->message($animal->getName(),
+                            'played',
+                            'for ' . $period . 'sec.',
+                            'Happiness +' . $chargeFor . ' Hunger +' . $chargeFor
+                        )
                     );
                 }
             }
@@ -304,11 +306,13 @@ class Zoo implements JsonSerializable
                     $animal->addHungriness($chargeFor);
                     $animal->addHappiness(-$chargeFor);
                     $this->addFunds($chargeFor);
-                    $this->message[] = $this->message($animal->getName(),
-                        'worked',
-                        'for ' . $period . 'sec.',
-                        'Happiness -' . $chargeFor . ' Hunger +' . $chargeFor,
-                        $this->getName() . " credits +" . $chargeFor
+                    $this->addToMessages(
+                        $this->message($animal->getName(),
+                            'worked',
+                            'for ' . $period . 'sec.',
+                            'Happiness -' . $chargeFor . ' Hunger +' . $chargeFor,
+                            $this->getName() . " credits +" . $chargeFor
+                        )
                     );
                 }
             }
